@@ -2,27 +2,38 @@
 
 require 'connect.php';
 
-// Get the posted data.
-$postdata = file_get_contents("php://input");
-if (isset($postdata) && !empty($postdata)) {
-    // Extract the data.
-    $request = json_decode($postdata);
+class DetailCar {
 
-    // Validate.
-    if (trim($request->unique_id) == '') {
-        return;
+    public function __construct() {
+        $this->getDetail();
     }
 
-    // Sanitize.
-    $uid = mysqli_real_escape_string($con, trim($request->unique_id));
+    private function getDetail() {
+        // Get the posted data.
+        $postdata = file_get_contents("php://input");
+        if (isset($postdata) && !empty($postdata)) {
+            // Extract the data.
+            $request = json_decode($postdata);
 
-    // Get by id.
-    $sql = "SELECT * FROM `cars` WHERE `unique_id` ='{$uid}' LIMIT 1";
+            // Validate.
+            if (trim($request->unique_id) == '') {
+                return;
+            }
 
-    $result = mysqli_query($con, $sql);
-    $row = mysqli_fetch_assoc($result);
+            // Sanitize.
+            // todo: doresit SQL Injection
+            $uid = trim($request->unique_id);
 
-    $json = json_encode($row);
-    echo $json;
+            // Get by id.
+            $sql = dibi::select('*')->from('cars')->where('unique_id=%i', $uid)->limit(1);
+
+            $row = $sql->fetchAll();
+
+            $json = json_encode($row);
+            echo $json;
+        }
+    }
+
 }
-exit;
+
+$detailCar = new DetailCar();
